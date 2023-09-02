@@ -1,6 +1,8 @@
 package org.example.dto;
 
+import java.util.Deque;
 import java.util.List;
+import org.example.domain.Page;
 
 public class PageResponse {
 
@@ -20,5 +22,35 @@ public class PageResponse {
         this.content = content;
         this.subPages = subPages;
         this.breadcrumbs = breadcrumbs;
+    }
+
+    public static PageResponse of(final Page page, final List<Page> subPages, final Deque<Page> breadCrumbs) {
+        return new PageResponse(
+                page.getId(),
+                page.getTitle(),
+                page.getContent(),
+                PageSummaryResponse.from(subPages),
+                PageSummaryResponse.from(breadCrumbs)
+        );
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public List<PageSummaryResponse> getSubPages() {
+        return subPages;
+    }
+
+    public List<PageSummaryResponse> getBreadcrumbs() {
+        return breadcrumbs;
     }
 }
