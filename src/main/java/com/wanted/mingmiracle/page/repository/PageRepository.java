@@ -36,7 +36,7 @@ public class PageRepository {
                 result = Page.builder().id(id).parentId(parentId).title(title).content(content).build();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("페이지 정보 조회 에러 발생!!", e);
         }
         return Optional.of(result);
     }
@@ -57,7 +57,7 @@ public class PageRepository {
                 result.add(new String[] {id, title});
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("하위 페이지 조회 에러 발생!!", e);
         }
         return Optional.of(result);
     }
