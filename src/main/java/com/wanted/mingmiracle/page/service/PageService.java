@@ -6,6 +6,7 @@ import com.wanted.mingmiracle.page.repository.PageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +24,18 @@ public class PageService {
         String parentId = targetPage.getParentId();
         Page parentPage = pageRepository.findById(parentId).orElseThrow();
         String parentTitle = parentPage.getTitle();
+        ArrayDeque<String[]> stack = new ArrayDeque<>();
 
         while (parentId != null) {
-            breadcrumbs.add(new String[] {parentId, parentTitle});
+            stack.add(new String[] {parentId, parentTitle});
             parentPage = pageRepository.findById(parentId).orElseThrow();
             parentId = parentPage.getParentId();
             parentTitle = parentPage.getTitle();
+        }
+
+        // 순서를 최상위 부모부터 출력하도록 변경
+        while (!stack.isEmpty()) {
+            breadcrumbs.add(stack.pop());
         }
 
         response = new PageResponseDTO(targetPage, subPages, breadcrumbs);
