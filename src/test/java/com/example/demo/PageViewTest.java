@@ -39,7 +39,11 @@ class PageViewTest {
         }
 
         private List<SummaryPageInfo> loadBreadcrumbs(final String pageId) {
-//            return loadPageInfoCommand.selectSummaryOfParentPages(pageId);
+            SummaryPageInfo summaryOfParentPage = loadPageInfoCommand.selectSummaryOfParentPage(pageId);
+            if (summaryOfParentPage.parentId() == null) {
+                return List.of(summaryOfParentPage);
+            }
+            return loadBreadcrumbs(summaryOfParentPage.parentId());
         }
 
         private List<SummaryPageInfo> loadSubPages(final String pageId) {
@@ -54,21 +58,30 @@ class PageViewTest {
             String id,
             String title,
             String content,
-            List<SummaryPageInfo> subPages,
-            List<SummaryPageInfo> breadcrumbs
+            List<SummaryPageResponse> subPages,
+            List<SummaryPageResponse> breadcrumbs
     ) {
+        private record SummaryPageResponse(String id, String title) {
+        }
+
         public static PageResponse of(final Page page, final List<SummaryPageInfo> subPages, final List<SummaryPageInfo> breadcrumbs) {
             return new PageResponse(
                     page.id(),
                     page.title(),
                     page.content(),
-                    subPages,
-                    breadcrumbs
+                    convertSummary(breadcrumbs),
+                    convertSummary(subPages)
             );
+        }
+
+        private static List<SummaryPageResponse> convertSummary(final List<SummaryPageInfo> subPages) {
+            return subPages.stream()
+                    .map(summaryPageInfo -> new SummaryPageResponse(summaryPageInfo.id(), summaryPageInfo.title()))
+                    .toList();
         }
     }
 
-    private record SummaryPageInfo(String id, String title) {
+    private record SummaryPageInfo(String id, String title, String parentId) {
     }
 
     private interface DatabaseConnectionManager {
@@ -77,29 +90,12 @@ class PageViewTest {
 
     private interface LoadPageInfoCommand {
         Page selectAllColumns();
+
+        SummaryPageInfo selectSummaryOfParentPage(String pageId);
+
+        List<SummaryPageInfo> selectSummaryOfSubPages(String pageId);
     }
 
-    private static class Page {
-        private final String id;
-        private final String title;
-        private final String content;
-
-        public Page(final String id, final String title, final String content) {
-            this.id = id;
-            this.title = title;
-            this.content = content;
-        }
-
-        public String id() {
-            return id;
-        }
-
-        public String title() {
-            return title;
-        }
-
-        public String content() {
-            return content;
-        }
+    private record Page(String id, String title, String content, String parentId) {
     }
 }
