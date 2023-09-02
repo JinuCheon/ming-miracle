@@ -20,11 +20,11 @@ public class PageRepository {
     HikariDataSource dataSource;
 
     public Optional<Page> findById(String id) {
-        Page result = new Page(id,null,null,null);
+        Page result = Page.builder().id(id).build();
         final String sql = "SELECT \"title\", \"content\", \"parentId\" FROM PAGE WHERE \"id\" = ?";
         try (
                 Connection conn = dataSource.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = conn.prepareStatement(sql)
             ) {
             ps.setString(1, id);
 
@@ -33,7 +33,7 @@ public class PageRepository {
                 String title = rs.getString("title");
                 String content = rs.getString("content");
                 String parentId = rs.getString("parentId");
-                result = new Page(id,parentId,title,content);
+                result = Page.builder().id(id).parentId(parentId).title(title).content(content).build();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -46,7 +46,7 @@ public class PageRepository {
         final String sql = "SELECT \"id\", \"title\" FROM PAGE WHERE \"parentId\" = ?";
         try (
                 Connection conn = dataSource.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = conn.prepareStatement(sql)
             ) {
             ps.setString(1, parentId);
 

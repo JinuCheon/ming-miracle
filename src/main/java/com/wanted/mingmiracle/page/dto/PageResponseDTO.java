@@ -1,17 +1,15 @@
 package com.wanted.mingmiracle.page.dto;
 
 import com.wanted.mingmiracle.page.domain.Page;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
 @Getter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageResponseDTO {
     String id;
     String title;
