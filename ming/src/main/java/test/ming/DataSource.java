@@ -4,9 +4,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DataSource {
-    private static final String URL = "jdbc:h2:tcp://localhost:9092/~/jpashop";
-    private static final String USERNAME = "sa";
-    private static final String PASSWORD = "";
+    private static final String URL = "jdbc:mysql://localhost:3308/board_db";
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = "root1234";
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
