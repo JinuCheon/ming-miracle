@@ -1,18 +1,17 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import database.DatabaseManager;
-import model.Page;
 import java.util.List;
+import model.Page;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.sql.SQLException;
 import repository.PageRepository;
 import service.PageService;
 
 public class MainApplication {
 
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
 
         Logger log = LoggerFactory.getLogger(MainApplication.class);
 
@@ -35,12 +34,12 @@ public class MainApplication {
         if (page != null) {
             try {
                 String pageJson = objectWriter.writeValueAsString(page);
-                log.info("Page Info : " + pageJson);
+                log.info("Page Info={}", pageJson);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            log.info("{\"error\": \"Page not found\"}");
+            log.info("{\"error\": \"페이지를 찾을 수 없습니다.\"}");
         }
 
         // 전체 페이지 목록 조회
@@ -48,12 +47,12 @@ public class MainApplication {
         if (!allPages.isEmpty()) {
             try {
                 String allPagesJson = objectWriter.writeValueAsString(allPages);
-                log.info("All Pages :" + allPagesJson);
+                log.info("All Pages={}", allPagesJson);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            log.info("{\"error\": \"No pages found\"}");
+            log.info("{\"error\": \"페이지를 찾을 수 없습니다.\"}");
         }
 
         // 연결 종료

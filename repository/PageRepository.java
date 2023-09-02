@@ -1,12 +1,12 @@
 package repository;
 
-import model.Page;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Page;
 import org.h2.jdbcx.JdbcConnectionPool;
 
 public class PageRepository {
