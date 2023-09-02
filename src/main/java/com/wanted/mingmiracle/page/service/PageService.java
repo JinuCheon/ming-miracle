@@ -20,22 +20,28 @@ public class PageService {
         PageResponseDTO response;
         Page targetPage = pageRepository.findById(id).orElseThrow();
         List<String[]> subPages = pageRepository.findByParentId(id).orElse(null);
+
         List<String[]> breadcrumbs = new ArrayList<>();
         String parentId = targetPage.getParentId();
-        Page parentPage = pageRepository.findById(parentId).orElseThrow();
-        String parentTitle = parentPage.getTitle();
-        ArrayDeque<String[]> stack = new ArrayDeque<>();
 
-        while (parentId != null) {
-            stack.add(new String[] {parentId, parentTitle});
-            parentPage = pageRepository.findById(parentId).orElseThrow();
-            parentId = parentPage.getParentId();
-            parentTitle = parentPage.getTitle();
-        }
+        if (parentId == null) {
+            breadcrumbs = null;
+        } else {
+            Page parentPage = pageRepository.findById(parentId).orElseThrow();
+            String parentTitle = parentPage.getTitle();
+            ArrayDeque<String[]> stack = new ArrayDeque<>();
 
-        // 순서를 최상위 부모부터 출력하도록 변경
-        while (!stack.isEmpty()) {
-            breadcrumbs.add(stack.pop());
+            while (parentId != null) {
+                stack.add(new String[] {parentId, parentTitle});
+                parentPage = pageRepository.findById(parentId).orElseThrow();
+                parentId = parentPage.getParentId();
+                parentTitle = parentPage.getTitle();
+            }
+
+            // 순서를 최상위 부모부터 출력하도록 변경
+            while (!stack.isEmpty()) {
+                breadcrumbs.add(stack.pop());
+            }
         }
 
         response = new PageResponseDTO(targetPage, subPages, breadcrumbs);
