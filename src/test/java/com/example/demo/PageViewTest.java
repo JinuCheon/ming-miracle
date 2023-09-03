@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -16,10 +17,40 @@ class PageViewTest {
 
     PageUseCase pageUseCase = new PageUseCase(new LoadPageInfoCommandImpl(new H2DatabaseConnectionManager()));
 
+    @BeforeEach
+    void setUp() throws SQLException {
+        final DatabaseConnectionManager databaseConnectionManager = new H2DatabaseConnectionManager();
+        databaseConnectionManager.generateTable(getCreatePageTableQuery());
+        databaseConnectionManager.insertQuery(getDummyInsertQueryForPageTable());
+    }
+
+    private String getDummyInsertQueryForPageTable() {
+        return """
+                INSERT INTO PAGE ("ID", "TITLE", "CONTENT", "PARENT_ID") VALUES
+                ('dummyuuid0001', 'Sample Title 1', 'Sample Content 1', NULL),
+                ('dummyuuid0002', 'Sample Title 2', 'Sample Content 2', 'dummyuuid0001'),
+                ('dummyuuid0003', 'Sample Title 3', 'Sample Content 3', 'dummyuuid0002'),
+                ('dummyuuid0004', 'Sample Title 4', 'Sample Content 4', 'dummyuuid0003'),
+                ('dummyuuid0005', 'Sample Title 5', 'Sample Content 5', 'dummyuuid0004');
+                """;
+    }
+
+    private static String getCreatePageTableQuery() {
+        return """
+                CREATE TABLE IF NOT EXISTS PAGE (
+                  "ID" VARCHAR(36) NOT NULL,
+                  "TITLE" VARCHAR(255) NOT NULL,
+                  "CONTENT" VARCHAR(4000),\s
+                  "PARENT_ID" VARCHAR(36),
+                  PRIMARY KEY ("ID"),
+                  FOREIGN KEY ("PARENT_ID") REFERENCES "PAGE"("ID"));
+                """;
+    }
+
     @Test
     void testPageView() {
         //given
-        final String pageId = "dummyuuid1234";
+        final String pageId = "dummyuuid0003";
         final PageViewRequest request = new PageViewRequest(pageId);
 
         //when
@@ -36,7 +67,7 @@ class PageViewTest {
         }
 
         public PageResponse getPageView(final PageViewRequest request) {
-            final Page pageList = loadPageInfoCommand.selectAllColumns();
+            final Page pageList = loadPageInfoCommand.selectAllAttributes(request.pageId());
             final List<SummaryPageInfo> subPages  = loadSubPages(request.pageId());
             final List<SummaryPageInfo> breadcrumbs  = loadBreadcrumbs(request.pageId());
             return PageResponse.of(pageList, subPages, breadcrumbs);
@@ -90,6 +121,10 @@ class PageViewTest {
 
     private interface DatabaseConnectionManager {
         ResultSet selectWithoutTransaction(String selectQuery) throws SQLException;
+
+        void generateTable(String createPageTableQuery) throws SQLException;
+
+        void insertQuery(String dummyInsertQueryForPageTable) throws SQLException;
     }
 
     public static class H2DatabaseConnectionManager implements DatabaseConnectionManager {
@@ -106,13 +141,27 @@ class PageViewTest {
             return stmt.executeQuery(selectQuery);
         }
 
+        @Override
+        public void generateTable(final String createPageTableQuery) throws SQLException {
+            Connection connection = getConnection();
+            Statement stmt = connection.createStatement();
+            stmt.executeUpdate(createPageTableQuery);
+        }
+
+        @Override
+        public void insertQuery(final String dummyInsertQueryForPageTable) throws SQLException {
+            Connection connection = getConnection();
+            Statement stmt = connection.createStatement();
+            stmt.executeUpdate(dummyInsertQueryForPageTable);
+        }
+
         private Connection getConnection() throws SQLException {
             return DriverManager.getConnection(url, user, pw); // DB 연결;
         }
     }
 
     private interface LoadPageInfoCommand {
-        Page selectAllColumns();
+        Page selectAllAttributes(final String pageId);
 
         SummaryPageInfo selectSummaryOfParentPage(String pageId);
 
@@ -127,14 +176,15 @@ class PageViewTest {
         }
 
         @Override
-        public Page selectAllColumns() {
+        public Page selectAllAttributes(final String pageId) {
             try {
-                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select * from page");
+                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select * from PAGE where ID = '" + pageId + "'");
+                resultSet.next();
                 return new Page(
-                        resultSet.getString("id"),
-                        resultSet.getString("title"),
-                        resultSet.getString("content"),
-                        resultSet.getString("parent_id")
+                        resultSet.getString("ID"),
+                        resultSet.getString("TITLE"),
+                        resultSet.getString("CONTENT"),
+                        resultSet.getString("PARENT_ID")
                 );
             } catch (SQLException e) {
                 throw new RuntimeException(e);
