@@ -7,9 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.example.domain.Page;
+import org.example.domain.PageRepository;
 
-public class PageRepository {
+public class JdbcPageRepository implements PageRepository {
 
+    @Override
     public Page findById(final String id) {
         final String sql = "SELECT * FROM PAGE WHERE id = ?";
         final ParameterSetter parameterSetter = statement -> statement.setString(1, id);
@@ -21,6 +23,7 @@ public class PageRepository {
         return executeQuery(sql, parameterSetter, resultMapper);
     }
 
+    @Override
     public List<Page> findAllByParentId(final String parentId) {
         final String sql = "SELECT * FROM PAGE WHERE parentId = ?";
         final ParameterSetter parameterSetter = statement -> statement.setString(1, parentId);

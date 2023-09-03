@@ -11,9 +11,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class PageRepositoryTest {
+class JdbcPageRepositoryTest {
 
-    private final PageRepository pageRepository = new PageRepository();
+    private final JdbcPageRepository jdbcPageRepository = new JdbcPageRepository();
 
     @BeforeAll
     static void setUp() {
@@ -35,7 +35,7 @@ class PageRepositoryTest {
         DataSetup.insertRows(rows);
 
         // when
-        final Page found = pageRepository.findById("00001");
+        final Page found = jdbcPageRepository.findById("00001");
 
         // then
         assertThat(found.getTitle()).isEqualTo("expected");
@@ -51,7 +51,7 @@ class PageRepositoryTest {
         DataSetup.insertRows(rows);
 
         // when
-        final List<Page> found = pageRepository.findAllByParentId("00001");
+        final List<Page> found = jdbcPageRepository.findAllByParentId("00001");
 
         // then
         final List<String> titles = found.stream()

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.example.data.JdbcPageRepository;
 import org.example.dto.PageResponse;
 import org.example.dto.PageSummaryResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 class PageServiceTest {
 
-    private final PageService pageService = new PageService();
+    private final PageService pageService = new PageService(new JdbcPageRepository());
 
     @BeforeAll
     static void setUp() {
