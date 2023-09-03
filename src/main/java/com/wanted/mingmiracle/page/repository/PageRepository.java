@@ -35,6 +35,7 @@ public class PageRepository {
                 String parentId = rs.getString("parentId");
                 result = Page.builder().id(id).parentId(parentId).title(title).content(content).build();
             }
+            rs.close();
         } catch (SQLException e) {
             log.error("페이지 정보 조회 에러 발생!!", e);
         }
@@ -56,6 +57,7 @@ public class PageRepository {
                 String title = rs.getString("title");
                 result.add(new String[] {id, title});
             }
+            rs.close();
         } catch (SQLException e) {
             log.error("하위 페이지 조회 에러 발생!!", e);
         }
