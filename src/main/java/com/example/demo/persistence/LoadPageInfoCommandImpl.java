@@ -1,4 +1,6 @@
-package com.example.demo;
+package com.example.demo.persistence;
+
+import com.example.demo.persistence.config.DatabaseConnectionManager;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -1,9 +1,9 @@
-package com.example.demo;
+package com.example.demo.persistence.config;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-interface DatabaseConnectionManager {
+public interface DatabaseConnectionManager {
     ResultSet selectWithoutTransaction(String selectQuery) throws SQLException;
 
     void generateTable(String createPageTableQuery) throws SQLException;

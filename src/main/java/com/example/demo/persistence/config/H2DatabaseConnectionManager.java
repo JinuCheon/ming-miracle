@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.persistence.config;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

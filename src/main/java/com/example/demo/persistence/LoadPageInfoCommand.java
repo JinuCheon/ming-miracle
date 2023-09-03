@@ -1,8 +1,8 @@
-package com.example.demo;
+package com.example.demo.persistence;
 
 import java.util.List;
 
-interface LoadPageInfoCommand {
+public interface LoadPageInfoCommand {
     Page selectAllAttributes(final String pageId);
 
     SummaryPageInfo selectSummaryOfParentPage(String pageId);
