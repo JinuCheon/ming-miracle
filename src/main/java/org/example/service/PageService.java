@@ -1,6 +1,7 @@
 package org.example.service;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class PageService {
         final Deque<Page> breadCrumbs = new ArrayDeque<>();
         collectBreadCrumbs(page.getParentId(), breadCrumbs);
 
-        return PageResponse.of(page, subPages, breadCrumbs);
+        return PageResponse.of(page, List.copyOf(subPages), Collections.unmodifiableCollection(breadCrumbs));
     }
 
     private void collectBreadCrumbs(final String id, final Deque<Page> breadCrumbs) {
