@@ -28,7 +28,7 @@ public class PageService {
         final Page page = pageRepository.findById(id);
         breadCrumbs.addFirst(page);
 
-        if (page.getParentId() == null) {
+        if (page.isRoot()) {
             return;
         }
         collectBreadCrumbs(page.getParentId(), breadCrumbs);
