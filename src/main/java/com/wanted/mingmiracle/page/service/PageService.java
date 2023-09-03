@@ -18,7 +18,7 @@ public class PageService {
 
     public PageResponseDTO getPageInfo(String id) {
         PageResponseDTO response;
-        Page targetPage = pageRepository.findById(id).orElseThrow();
+        Page targetPage = pageRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당하는 페이지가 존재하지 않습니다."));
         List<String[]> subPages = pageRepository.findByParentId(id).orElse(null);
 
         List<String[]> breadcrumbs = new ArrayList<>();
