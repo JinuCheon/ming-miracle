@@ -1,4 +1,4 @@
-package org.example;
+package org.example.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.example.data.JdbcPageRepository;
 import org.example.dto.PageResponse;
 import org.example.dto.PageSummaryResponse;
+import org.example.support.DataSetup;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
