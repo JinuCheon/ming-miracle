@@ -57,10 +57,15 @@ public class JdbcPageRepository implements PageRepository {
                 final PreparedStatement statement = connection.prepareStatement(sql);
         ) {
             parameterSetter.apply(statement);
-            final ResultSet resultSet = statement.executeQuery();
-            final T result = resultMapper.apply(resultSet);
-            resultSet.close();
-            return result;
+            return executeAndMapResult(statement, resultMapper);
+        } catch (SQLException e) {
+            throw new RuntimeException("SQL을 실행하지 못하였습니다.", e);
+        }
+    }
+
+    private <T> T executeAndMapResult(final PreparedStatement statement, final ResultMapper<T> resultMapper) {
+        try (final ResultSet resultSet = statement.executeQuery()) {
+            return resultMapper.apply(resultSet);
         } catch (SQLException e) {
             throw new RuntimeException("SQL을 실행하지 못하였습니다.", e);
         }
