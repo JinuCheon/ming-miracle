@@ -6,18 +6,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.example.domain.Page;
 import org.example.domain.PageRepository;
 
 public class JdbcPageRepository implements PageRepository {
 
     @Override
-    public Page findById(final String id) {
+    public Optional<Page> findById(final String id) {
         final String sql = "SELECT * FROM PAGE WHERE id = ?";
         final ParameterSetter parameterSetter = statement -> statement.setString(1, id);
-        final ResultMapper<Page> resultMapper = resultSet -> {
-            checkExists(resultSet);
-            return mapToEntity(resultSet);
+        final ResultMapper<Optional<Page>> resultMapper = resultSet -> {
+            if (resultSet.next()) {
+                return Optional.of(mapToEntity(resultSet));
+            }
+            return Optional.empty();
         };
 
         return executeQuery(sql, parameterSetter, resultMapper);
