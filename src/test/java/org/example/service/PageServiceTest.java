@@ -40,13 +40,14 @@ class PageServiceTest {
                 + "('00006', 'sub2', '내용6', '00004')";
         DataSetup.insertRows(rows);
 
+        // when
         final PageResponse response = pageService.findById("00004");
 
+        // then
         final List<String> subPageTitles = response.getSubPages()
                 .stream()
                 .map(PageSummaryResponse::getTitle)
                 .collect(Collectors.toList());
-
         final List<String> breadCrumbTitles = response.getBreadcrumbs()
                 .stream()
                 .map(PageSummaryResponse::getTitle)
