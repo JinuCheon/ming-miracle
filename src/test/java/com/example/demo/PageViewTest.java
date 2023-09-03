@@ -66,6 +66,9 @@ class PageViewTest {
         assertThat(response.content()).isEqualTo(expectedContent);
         assertThat(response.subPages()).hasSize(expectedSizeOfSubPages);
         assertThat(response.breadcrumbs()).hasSize(expectedSizeOfBreadCrumbs);
+
+        //log
+        System.out.println(response.toString());
     }
 
     private static class PageUseCase {
@@ -107,6 +110,13 @@ class PageViewTest {
             List<SummaryPageResponse> breadcrumbs
     ) {
         private record SummaryPageResponse(String id, String title) {
+            @Override
+            public String toString() {
+                return "{" +
+                        "\n\t\tid='" + id + "'," +
+                        "\n\t\ttitle='" + title + '\'' +
+                        "\n\t}";
+            }
         }
 
         public static PageResponse of(final Page page, final List<SummaryPageInfo> subPages, final List<SummaryPageInfo> breadcrumbs) {
@@ -123,6 +133,17 @@ class PageViewTest {
             return subPages.stream()
                     .map(summaryPageInfo -> new SummaryPageResponse(summaryPageInfo.id(), summaryPageInfo.title()))
                     .toList();
+        }
+
+        @Override
+        public String toString() {
+            return "\n{" +
+                    "\n\tid='" + id + "'," +
+                    "\n\ttitle='" + title + "'," +
+                    "\n\tcontent='" + content + "'," +
+                    "\n\tsubPages= " + subPages.toString() + "'," +
+                    "\n\tbreadcrumbs= " + breadcrumbs.toString() +
+                    "\n}";
         }
     }
 
