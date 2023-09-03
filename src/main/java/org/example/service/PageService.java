@@ -20,22 +20,20 @@ public class PageService {
                 .orElseThrow(() -> new IllegalArgumentException("해당하는 페이지가 존재하지 않습니다."));
 
         final List<Page> subPages = pageRepository.findAllByParentId(id);
-
-        final BreadCrumbs breadCrumbs = new BreadCrumbs();
-        collectBreadCrumbs(page.getParentId(), breadCrumbs);
+        final BreadCrumbs breadCrumbs = collectBreadCrumbs(page.getParentId(), new BreadCrumbs());
 
         return PageResponse.of(page, List.copyOf(subPages), breadCrumbs);
     }
 
-    private void collectBreadCrumbs(final String id, final BreadCrumbs breadCrumbs) {
+    private BreadCrumbs collectBreadCrumbs(final String id, final BreadCrumbs breadCrumbs) {
         final Optional<Page> found = pageRepository.findById(id);
         if (found.isEmpty()) {
-            return;
+            return breadCrumbs;
         }
 
         final Page page = found.get();
         breadCrumbs.addPrevious(page);
 
-        collectBreadCrumbs(page.getParentId(), breadCrumbs);
+        return collectBreadCrumbs(page.getParentId(), breadCrumbs);
     }
 }
