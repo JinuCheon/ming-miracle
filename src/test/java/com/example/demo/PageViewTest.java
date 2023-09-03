@@ -3,6 +3,10 @@ package com.example.demo;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -10,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 //@SpringBootTest
 class PageViewTest {
 
-    PageUseCase pageUseCase = new PageUseCase();
+    PageUseCase pageUseCase = new PageUseCase(new LoadPageInfoCommandImpl(new H2DatabaseConnectionManager()));
 
     @Test
     void testPageView() {
@@ -85,7 +89,26 @@ class PageViewTest {
     }
 
     private interface DatabaseConnectionManager {
-        Connection startConnect();
+        ResultSet selectWithoutTransaction(String selectQuery) throws SQLException;
+    }
+
+    public static class H2DatabaseConnectionManager implements DatabaseConnectionManager {
+        private static final String driver = "com.mysql.jdbc.Driver";
+        private static final String url = "jdbc:h2:mem:ming_miracle";
+        private static final String user = "sa";
+        private static final String pw = "";
+
+        @Override
+        public ResultSet selectWithoutTransaction(final String selectQuery) throws SQLException {
+            Connection connection = getConnection();
+            connection.setAutoCommit(true);
+            Statement stmt = connection.createStatement();
+            return stmt.executeQuery(selectQuery);
+        }
+
+        private Connection getConnection() throws SQLException {
+            return DriverManager.getConnection(url, user, pw); // DB 연결;
+        }
     }
 
     private interface LoadPageInfoCommand {
@@ -94,6 +117,39 @@ class PageViewTest {
         SummaryPageInfo selectSummaryOfParentPage(String pageId);
 
         List<SummaryPageInfo> selectSummaryOfSubPages(String pageId);
+    }
+
+    public static class LoadPageInfoCommandImpl implements LoadPageInfoCommand {
+        private final DatabaseConnectionManager databaseConnectionManager;
+
+        public LoadPageInfoCommandImpl(final DatabaseConnectionManager databaseConnectionManager) {
+            this.databaseConnectionManager = databaseConnectionManager;
+        }
+
+        @Override
+        public Page selectAllColumns() {
+            try {
+                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select * from page");
+                return new Page(
+                        resultSet.getString("id"),
+                        resultSet.getString("title"),
+                        resultSet.getString("content"),
+                        resultSet.getString("parent_id")
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public SummaryPageInfo selectSummaryOfParentPage(final String pageId) {
+            throw new UnsupportedOperationException("not implemented yet.");
+        }
+
+        @Override
+        public List<SummaryPageInfo> selectSummaryOfSubPages(final String pageId) {
+            throw new UnsupportedOperationException("not implemented yet.");
+        }
     }
 
     private record Page(String id, String title, String content, String parentId) {
