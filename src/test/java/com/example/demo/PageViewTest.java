@@ -51,6 +51,10 @@ class PageViewTest {
     void testPageView() {
         //given
         final String pageId = "dummyuuid0003";
+        final String expectedTitle = "Sample Title 3";
+        final String expectedContent = "Sample Content 3";
+        final int expectedSizeOfSubPages = 1;
+        final int expectedSizeOfBreadCrumbs = 2;
         final PageViewRequest request = new PageViewRequest(pageId);
 
         //when
@@ -58,6 +62,10 @@ class PageViewTest {
 
         //then
         assertThat(response.id()).isEqualTo(pageId);
+        assertThat(response.title()).isEqualTo(expectedTitle);
+        assertThat(response.content()).isEqualTo(expectedContent);
+        assertThat(response.subPages()).hasSize(expectedSizeOfSubPages);
+        assertThat(response.breadcrumbs()).hasSize(expectedSizeOfBreadCrumbs);
     }
 
     private static class PageUseCase {
@@ -67,10 +75,10 @@ class PageViewTest {
         }
 
         public PageResponse getPageView(final PageViewRequest request) {
-            final Page pageList = loadPageInfoCommand.selectAllAttributes(request.pageId());
+            final Page targetPage = loadPageInfoCommand.selectAllAttributes(request.pageId());
             final List<SummaryPageInfo> subPages  = loadSubPages(request.pageId());
-            final List<SummaryPageInfo> breadcrumbs  = loadBreadcrumbs(request.pageId());
-            return PageResponse.of(pageList, subPages, breadcrumbs);
+            final List<SummaryPageInfo> breadcrumbs  = loadBreadcrumbs(targetPage.parentId());
+            return PageResponse.of(targetPage, subPages, breadcrumbs);
         }
 
         private List<SummaryPageInfo> loadBreadcrumbs(final String pageId) {
@@ -106,8 +114,8 @@ class PageViewTest {
                     page.id(),
                     page.title(),
                     page.content(),
-                    convertSummary(breadcrumbs),
-                    convertSummary(subPages)
+                    convertSummary(subPages),
+                    convertSummary(breadcrumbs)
             );
         }
 
@@ -211,7 +219,7 @@ class PageViewTest {
         @Override
         public List<SummaryPageInfo> selectSummaryOfSubPages(final String pageId) {
             try {
-                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select ID, TITLE, PARENT_ID from PAGE where ID = '" + pageId + "'");
+                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select ID, TITLE, PARENT_ID from PAGE where PARENT_ID = '" + pageId + "'");
                 List<SummaryPageInfo> result = new ArrayList<>();
                 while(resultSet.next()) {
                     result.add(new SummaryPageInfo(
