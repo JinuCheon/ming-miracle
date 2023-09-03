@@ -14,10 +14,6 @@ public class Page {
         this.parentId = parentId;
     }
 
-    public boolean isRoot() {
-        return parentId == null;
-    }
-
     public String getId() {
         return id;
     }
