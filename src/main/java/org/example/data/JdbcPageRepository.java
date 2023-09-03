@@ -41,13 +41,6 @@ public class JdbcPageRepository implements PageRepository {
         return executeQuery(sql, parameterSetter, resultMapper);
     }
 
-    private void checkExists(final ResultSet resultSet) throws SQLException {
-        final boolean exists = resultSet.next();
-        if (!exists) {
-            throw new RuntimeException("해당하는 페이지가 존재하지 않습니다.");
-        }
-    }
-
     private Page mapToEntity(final ResultSet resultSet) throws SQLException {
         return new Page(
                 resultSet.getString("id"),
