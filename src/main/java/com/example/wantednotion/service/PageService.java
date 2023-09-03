@@ -29,9 +29,9 @@ public class PageService {
     public List<SubPage> getBreadcrumbs(String id) {
         List<SubPage> breadcrumbs = new ArrayList<>();
 
-        Page page = pageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("아이디로 조회 실패"));
         while(id != null) {
+            Page page = pageRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("아이디로 조회 실패"));
             if(page != null) {
                 breadcrumbs.add(0, new SubPage(page.getId(), page.getTitle()));
                 id = page.getParentId();
