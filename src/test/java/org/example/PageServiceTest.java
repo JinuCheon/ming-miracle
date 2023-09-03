@@ -30,12 +30,12 @@ class PageServiceTest {
     @Test
     void findById() {
         // given
-        final String rows = "('00001', '제목1', '내용1', null), " // root
-                + "('00002', '제목2', '내용2', '00001'), " // parent
-                + "('00003', '제목3', '내용3', '00001'), " // not expected
-                + "('00004', '제목4', '내용4', '00002'), " // target
-                + "('00005', '제목5', '내용5', '00004'), " // sub1
-                + "('00006', '제목6', '내용6', '00004')"; // sub2
+        final String rows = "('00001', 'root', '내용1', null), "
+                + "('00002', 'parent', '내용2', '00001'), " //
+                + "('00003', 'not expected', '내용3', '00001'), "
+                + "('00004', 'target', '내용4', '00002'), "
+                + "('00005', 'sub1', '내용5', '00004'), "
+                + "('00006', 'sub2', '내용6', '00004')";
         DataSetup.insertRows(rows);
 
         final PageResponse response = pageService.findById("00004");
@@ -51,8 +51,8 @@ class PageServiceTest {
                 .collect(Collectors.toList());
 
         assertAll(
-                () -> assertThat(subPageTitles).containsExactly("제목5", "제목6"),
-                () -> assertThat(breadCrumbTitles).containsExactly("제목1", "제목2")
+                () -> assertThat(subPageTitles).containsExactly("sub1", "sub2"),
+                () -> assertThat(breadCrumbTitles).containsExactly("root", "parent")
         );
     }
 }
