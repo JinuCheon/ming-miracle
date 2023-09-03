@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface PageRepository {
     Optional<Page> findById(String id);
     List<SubPage> findAllByParentId(String id);
+    List<Page> findAll();
 }

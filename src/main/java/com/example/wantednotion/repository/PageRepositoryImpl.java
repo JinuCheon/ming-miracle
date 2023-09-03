@@ -4,7 +4,6 @@ import com.example.wantednotion.domain.Page;
 import com.example.wantednotion.domain.SubPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -48,9 +47,20 @@ public class PageRepositoryImpl implements PageRepository {
 
     }
 
+    @Override
+    public List<Page> findAll() {
+        try {
+            String sql = "SELECT * FROM PAGE";
+            return jdbcTemplate.query(sql, pageRowMapper());
+        } catch (Exception e) {
+            log.error("Error fetching all pages", e);
+            throw e;
+        }
+    }
+
     private RowMapper<Page> pageRowMapper() {
         return (rs, rowNum) -> {
-            System.out.println("Mapping row for Page: " + rowNum);
+            log.info("Mapping row for Page: " + rowNum);
             Page page = new Page();
             page.setId(rs.getString("id"));
             page.setTitle(rs.getString("title"));
@@ -62,7 +72,7 @@ public class PageRepositoryImpl implements PageRepository {
 
     private RowMapper<SubPage> subPageRowMapper() {
         return (rs, rowNum) -> {
-            System.out.println("Mapping row for SubPage: " + rowNum);
+            log.info("Mapping row for SubPage: " + rowNum);
             SubPage subPage = new SubPage();
             subPage.setId(rs.getString("id"));
             subPage.setTitle(rs.getString("title"));

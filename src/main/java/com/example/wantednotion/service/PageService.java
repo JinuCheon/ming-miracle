@@ -7,39 +7,54 @@ import com.example.wantednotion.repository.PageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.annotation.PostConstruct;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class PageService {
 
     private final PageRepository pageRepository;
+    private final Map<String, Page> map = new HashMap<>();
+
+    public void loadPageToMap() {
+        List<Page> pages = pageRepository.findAll();
+        for (Page page : pages) {
+            map.put(page.getId(), page);
+        }
+    }
+
+    // Service Bean 등록시 먼저 실행해 map 초기화(캐싱기능)
+    @PostConstruct
+    public void init() {
+        loadPageToMap();
+    }
 
     public PageResponseDto findPageById(String id) {
-        Page page = pageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("아이디로 조회 실패"));
+        Page page = map.getOrDefault(id, null);
+        if(page == null) {
+            throw new RuntimeException("아이디로 조회 실패");
+        }
 
         List<SubPage> subPages = pageRepository.findAllByParentId(id);
-        List<SubPage> breadcrumbs =getBreadcrumbs(id);
+        Deque<SubPage> breadcrumbs =getBreadcrumbs(id);
 
         return new PageResponseDto(page, subPages, breadcrumbs);
     }
 
-    public List<SubPage> getBreadcrumbs(String id) {
-        List<SubPage> breadcrumbs = new ArrayList<>();
+    public Deque<SubPage> getBreadcrumbs(String id) {
+        Deque<SubPage> deque = new LinkedList<>();
 
         while(id != null) {
-            Page page = pageRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("아이디로 조회 실패"));
+            Page page = map.getOrDefault(id, null);
             if(page != null) {
-                breadcrumbs.add(0, new SubPage(page.getId(), page.getTitle()));
+                deque.push(new SubPage(page.getId(), page.getTitle()));
                 id = page.getParentId();
             } else {
                 break;
             }
         }
-        return breadcrumbs;
+        return deque;
     }
 
 }// class
