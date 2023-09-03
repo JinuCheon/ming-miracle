@@ -13,7 +13,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-//@SpringBootTest
 class PageViewTest {
 
     PageUseCase pageUseCase = new PageUseCase(new LoadPageInfoCommandImpl(new H2DatabaseConnectionManager()));
@@ -211,7 +210,20 @@ class PageViewTest {
 
         @Override
         public List<SummaryPageInfo> selectSummaryOfSubPages(final String pageId) {
-            throw new UnsupportedOperationException("not implemented yet.");
+            try {
+                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select ID, TITLE, PARENT_ID from PAGE where ID = '" + pageId + "'");
+                List<SummaryPageInfo> result = new ArrayList<>();
+                while(resultSet.next()) {
+                    result.add(new SummaryPageInfo(
+                            resultSet.getString("ID"),
+                            resultSet.getString("TITLE"),
+                            resultSet.getString("PARENT_ID")
+                    ));
+                }
+                return result;
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
