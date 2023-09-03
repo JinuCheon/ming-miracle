@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PageViewTest {
 
-    PageUseCase pageUseCase = new PageUseCase(new LoadPageInfoCommandImpl(new H2DatabaseConnectionManager()));
+    PageUseCase pageUseCase = new PageService(new LoadPageInfoCommandImpl(new H2DatabaseConnectionManager()));
 
     @BeforeEach
     void setUp() throws SQLException {
