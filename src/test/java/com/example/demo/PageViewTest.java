@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,9 +77,11 @@ class PageViewTest {
         private List<SummaryPageInfo> loadBreadcrumbs(final String pageId) {
             SummaryPageInfo summaryOfParentPage = loadPageInfoCommand.selectSummaryOfParentPage(pageId);
             if (summaryOfParentPage.parentId() == null) {
-                return List.of(summaryOfParentPage);
+                return new ArrayList<>(List.of(summaryOfParentPage));
             }
-            return loadBreadcrumbs(summaryOfParentPage.parentId());
+            final List<SummaryPageInfo> summaryPageInfoList = loadBreadcrumbs(summaryOfParentPage.parentId());
+            summaryPageInfoList.add(summaryOfParentPage);
+            return summaryPageInfoList;
         }
 
         private List<SummaryPageInfo> loadSubPages(final String pageId) {
@@ -192,8 +195,18 @@ class PageViewTest {
         }
 
         @Override
-        public SummaryPageInfo selectSummaryOfParentPage(final String pageId) {
-            throw new UnsupportedOperationException("not implemented yet.");
+        public SummaryPageInfo selectSummaryOfParentPage(final String parentPageId) {
+            try {
+                ResultSet resultSet = databaseConnectionManager.selectWithoutTransaction("select ID, TITLE, PARENT_ID from PAGE where ID = '" + parentPageId + "'");
+                resultSet.next();
+                return new SummaryPageInfo(
+                        resultSet.getString("ID"),
+                        resultSet.getString("TITLE"),
+                        resultSet.getString("PARENT_ID")
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
