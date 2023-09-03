@@ -2,6 +2,7 @@ package org.example.dto;
 
 import java.util.Collection;
 import java.util.List;
+import org.example.domain.BreadCrumbs;
 import org.example.domain.Page;
 
 public class PageResponse {
@@ -24,14 +25,13 @@ public class PageResponse {
         this.breadcrumbs = breadcrumbs;
     }
 
-    public static PageResponse of(final Page page, final Collection<Page> subPages,
-                                  final Collection<Page> breadCrumbs) {
+    public static PageResponse of(final Page page, final Collection<Page> subPages, final BreadCrumbs breadCrumbs) {
         return new PageResponse(
                 page.getId(),
                 page.getTitle(),
                 page.getContent(),
                 PageSummaryResponse.from(subPages),
-                PageSummaryResponse.from(breadCrumbs)
+                PageSummaryResponse.from(breadCrumbs.getPages())
         );
     }
 
