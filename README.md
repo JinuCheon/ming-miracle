@@ -225,7 +225,7 @@ insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있�
 # Team Review
 
 ### 권예진
-> 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/2
+> 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/1
 
 ### 고민했던 부분들
 
@@ -257,7 +257,7 @@ bread crumbs 조회는 단순한 데이터 조회라고 보기에는 그 배경�
 <br/>
 
 ### 양슬기
-> 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/3
+> 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/2
 
 안녕하세요, 밍기적 팀원 여러분들! 먼저 그동안 팀과제를 위해 함께 달려오느라 고생 많으셨습니다.
 제가 팀원분들의 생각과 노력을 바탕으로 개선된 현시점의 코드에서 더 나은 성능에 대한 고민을 해보았는데요.
