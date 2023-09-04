@@ -1,5 +1,177 @@
-# ming-miracle
-밍기적거리는 인간이 세상을 바꾼다.
+# 밍기적 - 브로드 크럼스(Breadcrumbs) 만들기
+
+
+### 팀 작업 방식
+
+***Work Flow: 개인 작업 -> 공유 -> 피드백 -> 수정 -> 최종 결과물***
+
+- 1차 task: DB 스키마 설계 + 피드백
+- 2차 task: 재귀 로직 의사코드 작성 + 피드백
+- 3차 task: 코드 작성 및 PR + 코드 리뷰
+
+
+### Project Structure
+```plain text
+└─org.example(root)
+        ├─data
+        │      DataSource.java
+        │      JdbcPageRepository.java
+        │      
+        ├─domain
+        │      BreadCrumbs.java
+        │      Page.java
+        │      PageRepository.java
+        │      
+        ├─dto
+        │      PageResponse.java
+        │      PageSummaryResponse.java
+        │      
+        └─service
+                PageService.java
+```
+
+
+### Dependencies
+
+#### DB
+- [MySQL Connector Java](https://mvnrepository.com/artifact/mysql/mysql-connector-java) » [8.0.33](https://mvnrepository.com/artifact/mysql/mysql-connector-java/8.0.33)
+- [H2 Database Engine](https://mvnrepository.com/artifact/com.h2database/h2) » [2.2.220](https://mvnrepository.com/artifact/com.h2database/h2/2.2.220)
+
+#### Test
+- [AssertJ Core](https://mvnrepository.com/artifact/org.assertj/assertj-core) » [3.24.2](https://mvnrepository.com/artifact/org.assertj/assertj-core/3.24.2)
+- [JUnit Jupiter API](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api) » [5.10.0](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api/5.10.0)
+- [JUnit Jupiter Engine](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine) » [5.10.0](https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine/5.10.0)
+
+### 전체 처리 흐름
+
+```mermaid
+sequenceDiagram
+    App->>DB: 현재 페이지 조회
+		activate DB
+		DB-->>App: 현재 페이지
+		deactivate DB
+    App->>DB: 서브 페이지 목록 조회
+		activate DB
+		DB-->>App: 서브 페이지 목록
+		deactivate DB
+
+		loop 부모 페이지 없을 때 까지
+			App->>DB: 부모 페이지 조회
+			activate DB
+			DB-->>App: 부모 페이지
+			deactivate DB
+			Note over App: 부모 페이지 stack에 저장
+    end
+		Note over App: 응답 완성!
+```
+
+### Classe Diagram (updated at 9/4)
+
+#### 주요 class
+```mermaid
+classDiagram
+    Page <.. PageRepository
+		Page <.. PageService
+		PageRepository <-- PageService
+		PageRepository <|.. JdbcPageRepository
+		
+		
+    class Page {
+			-String id;
+	    -String title;
+	    -String content;
+	    -String parentId;
+    }
+    class PageRepository {
+				<<interface>>
+        +findById(String id)* Page
+        +findByParentId(String parentId)* Page
+    }
+    class JdbcPageRepository {
+        +findById(String id) Page
+        +findByParentId(String parentId) Page
+				-checkExists(ResultSet resultSet)
+				-mapToEntity(ResultSet resultSet) Page
+				-executeQuery(String sql, ParametterSetter parameterSetter, ResultMapper~T~ resultMapper) T
+    }
+    class PageService {
+	    -PageRepository pageRepository
+	    +findById(String id) PageResponse
+	    -collectBreadCrumbs(String id, Deque<Page> breadCrumbs)
+    }
+```
+
+#### full class diagram
+```mermaid
+classDiagram
+    BreadCrumbs"1" <-- "1..*" Page 
+    PageRepository <|.. JdbcPageRepository
+    Page <.. PageRepository
+    PageRepository <-- PageService
+    Page <.. PageService
+    BreadCrumbs <.. PageService
+    Page <.. PageResponse
+    Page <.. PageSummaryResponse
+    BreadCrumbs <.. PageResponse
+    PageService ..> PageResponse
+    PageResponse "1" --> "1..*" PageSummaryResponse
+
+    class Page {
+			-String id
+	    -String title
+	    -String content
+	    -String parentId
+    }
+    class BreadCrumbs {
+			-Deque<Page> pages
+			+addPrevious(Page page)
+    }
+    class PageRepository {
+				<<interface>>
+        +findById(String id)* Page
+        +findByParentId(String parentId)* Page
+    }
+    class JdbcPageRepository {
+        +findById(String id) Page
+        +findByParentId(String parentId) Page
+				-checkExists(ResultSet resultSet)
+				-mapToEntity(ResultSet resultSet) Page
+				-executeQuery(String sql, ParametterSetter parameterSetter, ResultMapper~T~ resultMapper) T
+    }
+    class PageService {
+	    -PageRepository pageRepository
+	    +findById(String id) PageResponse
+	    -collectBreadCrumbs(String id, Deque<Page> breadCrumbs)
+    }
+    class PageResponse {
+			-String id
+	    -String title
+	    -String content
+	    -List<PageSummaryResponse> subPages
+	    -List<PageSummaryResponse> breadcrumbs
+			+from(Page page, Collection<Page> pages, BreadCrumbs breadCrumbs) PageResponse
+    }
+    class PageSummaryResponse {
+			-String id
+	    -String title
+			+from(List<Page> page) List<PageSummaryResponse>
+    }
+```
+
+### Note
+
+#### DB 조회 Template method
+
+`Repository` 내에 DB 접근 관련 로직을 캡슐화하여 service가 data 저장 방식에 관여하지 않도록 구현했습니다.
+
+SQL문 실행 시 `SQLException` 예외 처리와 자원 반납이 반복되게 되는데, 이를 template method(`executeQuery`)로 분리하였습니다. 각각의 조회 method에서는 주 관심사인 sql문 작성, parameter 세팅, 결과 mapping에만 집중하게 됩니다.
+
+#### Test용 Data Setup
+
+오직 테스트만을 위한 ddl문과 insert문의 실행이 필요합니다. test class내부에 이를 모두 작성하면 given에 대한 파악이 어렵습니다. 따라서 `DataSetup`이라는 util class를 만들어 분리하고 sql을 일일이 읽고 파악하는 대신 method 이름을 통해 data가 어떻게 설정되었는지 드러내도록 했습니다.
+
+insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있도록 parameter로 `rows`를 전달받습니다. 각 test case마다 어떤 data들이 세팅되어 있는지 한 눈에 파악할 수 있습니다.
+
 
 
 ## Team Review
