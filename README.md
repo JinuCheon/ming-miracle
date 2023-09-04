@@ -179,55 +179,32 @@ insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있�
 ### 권예진
 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/2
 
-#### DB 조회 Template method
+### 권예진 - 고민했던 부분들
 
-`Repository` 내에 DB 접근 관련 로직을 캡슐화하여 service가 data 저장 방식에 관여하지 않도록 구현했습니다.
+bread crumbs를 조회하는 방식은 크게 두 가지를 놓고 고민했다.
 
-SQL문 실행 시 `SQLException` 예외 처리와 자원 반납이 반복되게 되는데, 이를 template method(`executeQuery`)로 분리하였습니다. 각각의 조회 method에서는 주 관심사인 sql문 작성, parameter 세팅, 결과 mapping에만 집중하게 됩니다.
+1. 각각의 페이지를 따로 조회(application에서 재귀 탐색 하며 쿼리 호출)
+2. 한 번에 모든 bread crumbs를 조회(재귀 쿼리)
 
-#### Test용 Data Setup
+#### 성능 관점
 
-오직 테스트만을 위한 ddl문과 insert문의 실행이 필요합니다. test class내부에 이를 모두 작성하면 given에 대한 파악이 어렵습니다. 따라서 `DataSetup`이라는 util class를 만들어 분리하고 sql을 일일이 읽고 파악하는 대신 method 이름을 통해 data가 어떻게 설정되었는지 드러내도록 했습니다.
+DB와 Application이 각각 별도의 서버로 구성된 상황을 가정하고 생각했다. 1번은 2번에 비해 서버 간 통신로 인한 네트워크 비용이 많이 발생한다. 2번은 DB 서버 호출 자체는 한 번이지만, 그 한 번의 호출로 긴 시간이 필요한 조회 쿼리를 실행하게 된다.
 
-insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있도록 parameter로 `rows`를 전달받습니다. 각 test case마다 어떤 data들이 세팅되어 있는지 한 눈에 파악할 수 있습니다.
+조회 쿼리 처리가 길어질 경우, application 입장에서는 connection이 하나의 thread에 의해 너무 오랫동안 점유되는 문제가 있다. DB의 입장에서는 long transaction이 문제가 될 수 있다. MySQL innoDB의 경우 select에 별도의 lock이 걸리지는 않지만, 해당 쿼리가 실행되는 사이에 undo log가 쌓이는 것이 문제가 될 수 있다(격리 레벨이 Repeatable Read 이상인 경우). innoDB를 사용하는 [MariaDB의 공식 문서](https://mariadb.com/kb/en/innodb-undo-log/#effects-of-long-running-transactions)에서도 언급된 문제다.
 
-<br/>
+처리 속도는 서버 환경에 따라 다를 수 있어 테스트 없이 정확하게 알 수는 없다. 그러나 long transaction은 단순히 처리 속도가 지연되는 것 이외에 side effect가 많을 것이라고 생각된다.
 
-### 양슬기
-개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/1
+#### 유지 보수 관점
 
-안녕하세요, 밍기적 팀원 여러분들! 먼저 그동안 팀과제를 위해 함께 달려오느라 고생 많으셨습니다.
-제가 팀원분들의 생각과 노력을 바탕으로 개선된 현시점의 코드에서 더 나은 성능에 대한 고민을 해보았는데요.
+bread crumbs 조회는 단순한 데이터 조회라고 보기에는 그 배경에 다양한 도메인 규칙이 존재한다. page간의 관계에 대한 규칙, bread crumbs의 정렬 순서에 대한 규칙, bread crumbs에 포함될 데이터에 대한 규칙 등 조회 하나에도 이렇게 많은 규칙이 숨어있다. 이러한 도메인 규칙은 코드로 유연하게 표현하고 관리하는 것이 좋다. 코드 레벨이 아닌 쿼리로만 관리된다면 유지 보수에 취약해진다.
 
-Java 비즈니스 로직 측면에서는 좋은 방안이 잘 떠오르지 않아서 DB적인 관점에서 고민을 해봤습니다.
+#### RDBMS vs NoSQL?
 
-현재 시점에서 데이터베이스 테이블에 인덱스가 걸려 있지 않은 상태라면, Page 테이블에 인덱스를 추가하여 데이터를 조회할 때 성능을 향상시킬 수 있지 않을까? 생각해봤습니다.
+팀 회의에서 재미있는 아이디어가 나왔다. NoSQL document DB의 유연한 schema를 활용해서 각 페이지마다 bread crumbs를 json array field로 가지고 있게 하는 설계였다.
 
-이미 id 컬럼은 PK로 설정이 되어 있기 때문에 생략하고, 주로 데이터를 조회할 때 WHERE 절에서 사용되는 parentId를 인덱스로 설정하면 좋을 것 같다는 생각을 해보았습니다.
+이번 과제가 조회 구현에 한정되어있기 때문에 조회만 단편적으로 생각한다면 아마 압도적인 조회 성능을 보이는 방법이 아니었을까 싶다. 그러나 이 방식을 채택하지 않은 이유는 쓰기 작업의 비용 때문이다. 과제엔 포함되어있지 않지만 notion이라는 서비스에서 쓰기 기능은 필수적이다. 만약 위와 같은 방식으로 저장한다면 페이지 간의 관계가 수정될 때 마다 연관된 모든 page들의 계층 구조를 수정해야 한다. 시간복잡도는 `자식페이지의 수 * 자식의 자식페이지 수 * 자식의 자식의 자식페이지 수` ...*그만 알아보도록 하자*. 실제로 제안하신 진우님도 `조회만 생각한다면…` 이라고 재차 강조하셨다 😂
 
-현재 DB_CLOSE_DELAY=-1 옵션을 사용 중이므로, H2 콘솔에 직접 DDL 쿼리를 날리거나
-DataSetup 클래스에 Index 추가하는 로직을 추가하는 방안을 고민해봤습니다.
-더 좋은 방안이 있다면 피드백 부탁드립니다~!
-
-```
--- 1) H2 콘솔에서 직접 "parentId" 컬럼에 인덱스 생성
-CREATE INDEX idx_parentId ON "PAGE" ("parentId");
-```
-
-```
--- 2) DataSetup 클래스 createTable 메서드에서 테이블 DDL에 Index 설정 추가하기
-public static void createTable() {
-    execute("CREATE TABLE IF NOT EXISTS PAGE ("
-            + "  id VARCHAR(36) NOT NULL,"
-            + "  title VARCHAR(255) NOT NULL,"
-            + "  content VARCHAR(4000), "
-            + "  parentId VARCHAR(36),"
-            + "  PRIMARY KEY (id),"
-            + "  FOREIGN KEY (parentId) REFERENCES PAGE(id),"
-            + "  INDEX idx_parentId (parentId)" // parentId로 인덱스 생성 추가
-            + ");");
-}
-```
+서비스의 특성이 달랐다면 충분히 고려할 수 있는 방법이라고 생각한다. 당연히 RDBMS를 쓴다고 생각하기 쉬운데 NoSQL까지 고민해오신 팀원분의 유연한 발상에 정말 감탄했다! 덕분에 생각치 못한 부분에 대해 고민해 볼 수 있었다.
 
 <br/>
 
