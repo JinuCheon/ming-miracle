@@ -5,6 +5,7 @@
 ## Team Review
 
 ### 권예진
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/2
 
 #### DB 조회 Template method
 
@@ -21,6 +22,7 @@ insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있�
 <br/>
 
 ### 양슬기
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/1
 
 안녕하세요, 밍기적 팀원 여러분들! 먼저 그동안 팀과제를 위해 함께 달려오느라 고생 많으셨습니다.
 제가 팀원분들의 생각과 노력을 바탕으로 개선된 현시점의 코드에서 더 나은 성능에 대한 고민을 해보았는데요.
@@ -58,6 +60,7 @@ public static void createTable() {
 <br/>
 
 ### 한준수
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/3
 
 분명 회의를 하고 의사코드를 작성하는 단계까지는 다들 더 비슷한 구조였던 것 같은데, 막상 구현을 하고 보니 생각보다 더 다양한 방식으로 구현해서 각자의 차이가 느껴졌습니다.
 
@@ -70,6 +73,7 @@ ps. 과제에서는 조회 API만 가정하였기 때문에 모처럼 UUID로 ID
 <br/>
 
 ### 조국선
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/4
 
 **제가 보는 관점 에서 성능이 최적화 되어 있다고 느끼는 점.**
 
@@ -97,6 +101,7 @@ NoSQL은 유연성과 확장성이 좋아 추가적인 성능상의 이점을 �
 <br/>
 
 ### 천진우
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/5
 
 #### 다양한 재귀접근의 방식들
 처음 얘기를 주고받으며, 재귀를 application 레벨이 아닌 DB 레벨에서 `스토어드 프로시저`로 처리하는 게 어떨까? 라는 의견들을 주고받았습니다. 그러나 스토어드 프로시저의 경우 조회 속도가 빠를 수 있지만 커넥션 주기가 재귀 호출 회수만큼 길어지고 커넥션 고갈 또는 데드락 문제가 흔하게 일어나는 이슈가 있습니다(select 쿼리에서 해당 문제가 자주 발생하는지는 모르겠습니다만)
@@ -116,6 +121,7 @@ NoSQL은 유연성과 확장성이 좋아 추가적인 성능상의 이점을 �
 <br/>
 
 ### 정대철
+개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/6
 
 **팀 과제를 마치며…**
 성능에 대한 고민이라면 저장과 조회 기능을 주로 생각하게 됩니다. 이전에는 데이터를 저장할 때 배열이나 ArrayList를 주로 사용하며 시간 복잡도에 대해 깊은 고민을 하지 않았던 것 같습니다. 최근 Stack과 Linked List 등 여러 자료구조를 학습하며 이번 과제에 적용해 보았고 무엇이 다른지, 복잡도는 어떤지, 코드의 흐름에 대해 더 구체적인 고민을 했던 것 같습니다.
