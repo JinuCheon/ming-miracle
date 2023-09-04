@@ -1,16 +1,64 @@
 # 밍기적 - 브로드 크럼스(Breadcrumbs) 만들기
 
+### Mission & Requirement
+```
+노션과 유사한 간단한 페이지 관리 API를 구현해주세요. 각 페이지는 제목, 컨텐츠, 그리고 서브 페이지를 가질 수 있습니다. 또한, 특정 페이지에 대한 브로드 크럼스(Breadcrumbs) 정보도 반환해야 합니다.
 
-### 팀 작업 방식
+페이지 정보 조회 API**: 특정 페이지의 정보를 조회할 수 있는 API를 구현하세요.
+- 입력: 페이지 ID
+- 출력: 페이지 제목, 컨텐츠, 서브 페이지 리스트, **브로드 크럼스 ( 페이지 1 > 페이지 3 > 페이지 5)**
+- 컨텐츠 내에서 서브페이지 위치 고려 X
+```
 
-***Work Flow: 개인 작업 -> 공유 -> 피드백 -> 수정 -> 최종 결과물***
+### Team Work Flow
+
+> 개인 작업 -> 공유 -> 피드백 -> 수정 -> 최종 결과물
 
 - 1차 task: DB 스키마 설계 + 피드백
 - 2차 task: 재귀 로직 의사코드 작성 + 피드백
 - 3차 task: 코드 작성 및 PR + 코드 리뷰
+- 4차 task: 최종 결과물 리팩토링
+- 5차 task: 문서화
 
+# Specification
 
-### Project Structure
+### DB Schema
+
+``` sql
+CREATE TABLE IF NOT EXISTS "PAGE" (
+  "id" VARCHAR(36) NOT NULL,
+  "title" VARCHAR(255) NOT NULL,
+  "content" VARCHAR(4000), 
+  "parentId" VARCHAR(36),
+  PRIMARY KEY ("id"),
+  FOREIGN KEY ("parentId") REFERENCES "PAGE"("id")
+);
+```
+
+### API Response
+```json
+{
+    "id": "n9u12uh9fdh379uhf",
+    "title" : "페이지 제목",
+    "content": "페이지 내용입니다.",
+    "subPages" : [
+        {
+            "id": "3n71436y78934nc2z3",
+            "title": "서브 페이지 제목"
+        }
+    ],
+    "breadcrumbs" : [
+        {
+            "id": "xm823478397x4912x12",
+            "title": "상위 페이지 제목"
+        }
+    ]
+}
+```
+
+# Project
+
+### Package Structure
 ```plain text
 └─org.example(root)
         ├─data
@@ -65,7 +113,7 @@ sequenceDiagram
 		Note over App: 응답 완성!
 ```
 
-### Classe Diagram (updated at 9/4)
+### Classe Diagram
 
 #### 주요 class
 ```mermaid
@@ -172,9 +220,9 @@ SQL문 실행 시 `SQLException` 예외 처리와 자원 반납이 반복되게 
 
 insert문의 경우 각각의 test case에 맞게 data row를 세팅할 수 있도록 parameter로 `rows`를 전달받습니다. 각 test case마다 어떤 data들이 세팅되어 있는지 한 눈에 파악할 수 있습니다.
 
+<br/>
 
-
-## Team Review
+# Team Review
 
 ### 권예진
 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/2
