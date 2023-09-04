@@ -256,6 +256,46 @@ bread crumbs 조회는 단순한 데이터 조회라고 보기에는 그 배경�
 
 <br/>
 
+### 양슬기
+> 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/3
+
+안녕하세요, 밍기적 팀원 여러분들! 먼저 그동안 팀과제를 위해 함께 달려오느라 고생 많으셨습니다.
+제가 팀원분들의 생각과 노력을 바탕으로 개선된 현시점의 코드에서 더 나은 성능에 대한 고민을 해보았는데요.
+
+Java 비즈니스 로직 측면에서는 좋은 방안이 잘 떠오르지 않아서 DB적인 관점에서 고민을 해봤습니다.
+
+현재 시점에서 데이터베이스 테이블에 인덱스가 걸려 있지 않은 상태라면, Page 테이블에 인덱스를 추가하여 데이터를 조회할 때 성능을 향상시킬 수 있지 않을까? 생각해봤습니다.
+
+이미 id 컬럼은 PK로 설정이 되어 있기 때문에 생략하고, 주로 데이터를 조회할 때 WHERE 절에서 사용되는 parentId를 인덱스로 설정하면 좋을 것 같다는 생각을 해보았습니다.
+
+현재 DB_CLOSE_DELAY=-1 옵션을 사용 중이므로, H2 콘솔에 직접 DDL 쿼리를 날리거나
+DataSetup 클래스에 Index 추가하는 로직을 추가하는 방안을 고민해봤습니다.
+더 좋은 방안이 있다면 피드백 부탁드립니다~!
+
+```
+-- 1) H2 콘솔에서 직접 "parentId" 컬럼에 인덱스 생성
+CREATE INDEX idx_parentId ON "PAGE" ("parentId");
+```
+
+
+
+```
+-- 2) DataSetup 클래스 createTable 메서드에서 테이블 DDL에 Index 설정 추가하기
+public static void createTable() {
+    execute("CREATE TABLE IF NOT EXISTS PAGE ("
+            + "  id VARCHAR(36) NOT NULL,"
+            + "  title VARCHAR(255) NOT NULL,"
+            + "  content VARCHAR(4000), "
+            + "  parentId VARCHAR(36),"
+            + "  PRIMARY KEY (id),"
+            + "  FOREIGN KEY (parentId) REFERENCES PAGE(id),"
+            + "  INDEX idx_parentId (parentId)" // parentId로 인덱스 생성 추가
+            + ");");
+}
+```
+
+<br/>
+
 ### 한준수
 > 개인 코드 및 PR: https://github.com/JinuCheon/ming-miracle/pull/3
 
